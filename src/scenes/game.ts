@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import {PlayerController} from "./player-controller";
+import ObstaclesController from "./obstacles-controller";
 
 export default class Game extends Phaser.Scene {
 
@@ -11,10 +12,12 @@ export default class Game extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private onGround = false;
   private playerController: PlayerController | undefined;
+  private obstacles!: ObstaclesController | undefined;
 
   init() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.scene.launch('ui');
+    this.obstacles = new ObstaclesController();
   }
 
   preload() {
@@ -35,6 +38,8 @@ export default class Game extends Phaser.Scene {
     const ground = map.createLayer('ground', tileset);
     ground.setCollisionByProperty({collides: true});
 
+    const obstacles = map.createLayer('obstacles', tileset);
+
     this.cameras.main.scrollY = 300;
 
     const objectLayer = map.getObjectLayer('objects');
@@ -54,7 +59,9 @@ export default class Game extends Phaser.Scene {
 
           this.playerController = new PlayerController(
             this.penguin,
-            this.cursors
+            this.cursors,
+            this.obstacles,
+            this,
           );
 
           this.cameras.main.startFollow(this.penguin, true);
@@ -73,7 +80,22 @@ export default class Game extends Phaser.Scene {
             }
           );
           star.setData('type', 'star');
-          break ;
+          break;
+
+        case 'spikes':
+          const spike = this.matter.add.rectangle(
+            x + (width * 0.5),
+            y + (height * 0.5),
+            width,
+            height,
+            {
+              isStatic: true,
+              isSensor: true,
+            });
+
+          this.obstacles?.add('spikes', spike);
+
+          break;
       }
     });
 

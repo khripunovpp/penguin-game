@@ -1,13 +1,18 @@
 import StateMachine from "../state-machine/state-machine";
-import { sharedInstance as events } from "./event-center";
+import {sharedInstance as events} from "./event-center";
+import ObstaclesController from "./obstacles-controller";
 
 export class PlayerController {
   constructor(
     sprite: Phaser.Physics.Matter.Sprite,
-    cursors: Phaser.Types.Input.Keyboard.CursorKeys
+    cursors: Phaser.Types.Input.Keyboard.CursorKeys,
+    obstacles: ObstaclesController,
+    scene: Phaser.Scene,
   ) {
     this.sprite = sprite;
     this.cursors = cursors;
+    this.obstacles = obstacles;
+    this.scene = scene;
 
     this._createAnimations();
     this.stateMachine = new StateMachine(this, 'player-controller');
@@ -24,12 +29,20 @@ export class PlayerController {
         onEnter: this._jumpOnEnter,
         onUpdate: this._jumpOnUpdate,
       })
+      .addState('spike-hit', {
+        onEnter: this._spikeHitOnEnter,
+      })
       .setState('idle');
 
 
     this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
+
+      if (this.obstacles?.is('spikes', body)) {
+        this.stateMachine?.setState('spike-hit');
+        return;
+      }
 
       if (!gameObject) return;
 
@@ -56,9 +69,44 @@ export class PlayerController {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private sprite: Phaser.Physics.Matter.Sprite;
   private stateMachine: StateMachine | undefined;
+  private obstacles: ObstaclesController;
+  private scene: Phaser.Scene;
 
   update(dt: number) {
     this.stateMachine?.update(dt);
+  }
+
+  private _spikeHitOnEnter() {
+    this.sprite.setVelocityY(-12);
+
+    const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
+    const endColor = Phaser.Display.Color.ValueToColor(0xff0000);
+
+    this.scene.tweens.addCounter({
+      from: 0,
+      to: 100,
+      duration: 100,
+      repeat: 2,
+      yoyo: true,
+      onUpdate: (tween) => {
+        const value = tween.getValue();
+        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
+          startColor,
+          endColor,
+          100,
+          value,
+        );
+
+        const color = Phaser.Display.Color.GetColor(
+          colorObject.r,
+          colorObject.g,
+          colorObject.b,
+        );
+
+        this.sprite.setTint(color);
+      },
+    })
+    this.stateMachine?.setState('idle');
   }
 
   private _walkOnEnter() {
