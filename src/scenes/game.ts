@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {PlayerController} from "./player-controller";
 
 export default class Game extends Phaser.Scene {
 
@@ -9,6 +10,7 @@ export default class Game extends Phaser.Scene {
   penguin: Phaser.Physics.Matter.Sprite | undefined;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private onGround = false;
+  private playerController: PlayerController | undefined;
 
   init() {
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -25,7 +27,7 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
-    this._createAnimations();
+
     const map = this.make.tilemap({key: 'tilemap'});
     const tileset = map.addTilesetImage('iceworld', 'tiles');
 
@@ -33,7 +35,6 @@ export default class Game extends Phaser.Scene {
     ground.setCollisionByProperty({collides: true});
 
     this.cameras.main.scrollY = 300;
-
 
     const objectLayer = map.getObjectLayer('objects');
 
@@ -48,11 +49,12 @@ export default class Game extends Phaser.Scene {
             'penguin',
             'penguin-front.png')
             .play('penguin-idle')
-            .setFixedRotation()
+            .setFixedRotation();
 
-          this.penguin.setOnCollide(() => {
-            this.onGround = true;
-          })
+          this.playerController = new PlayerController(
+            this.penguin,
+            this.cursors
+          );
 
           this.cameras.main.startFollow(this.penguin, true);
           // this.penguin.setPosition(x + width * 0.5, y - height * 0.5);
@@ -63,49 +65,8 @@ export default class Game extends Phaser.Scene {
     this.matter.world.convertTilemapLayer(ground);
   }
 
-  update() {
-    if (!this.penguin) return;
-    const speed = 4;
-    if (this.cursors.left?.isDown) {
-      this.penguin.flipX = true;
-      this.penguin.setVelocityX(-speed);
-      this.penguin.play('penguin-walk', true);
-    } else if (this.cursors.right?.isDown) {
-      this.penguin.flipX = false;
-      this.penguin.setVelocityX(speed);
-      this.penguin.play('penguin-walk', true);
-    } else {
-      this.penguin.setVelocityX(0);
-      this.penguin.play('penguin-idle', true);
-    }
-
-    const didPressJump = Phaser.Input.Keyboard.JustDown(this.cursors.space);
-
-    if (didPressJump && this.onGround) {
-      this.penguin.setVelocityY(-15);
-      this.onGround = false;
-    }
-  }
-
-  private _createAnimations() {
-    this.anims.create({
-      key: 'penguin-idle',
-      frames: [{
-        key: 'penguin',
-        frame: 'penguin_walk01.png',
-      }],
-    });
-
-    this.anims.create({
-      key: 'penguin-walk',
-      frames: this.anims.generateFrameNames('penguin', {
-        start: 1,
-        end: 4,
-        prefix: 'penguin_walk0',
-        suffix: '.png',
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
+  update(t: number, dt: number) {
+    if (!this.playerController) return
+    this.playerController.update(dt);
   }
 }
