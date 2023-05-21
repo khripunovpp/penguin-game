@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="git" orientation="orthogonal" renderorder="right-down" width="50" height="15" tilewidth="70" tileheight="70" infinite="0" nextlayerid="3" nextobjectid="4">
+<map version="1.10" tiledversion="git" orientation="orthogonal" renderorder="right-down" width="50" height="15" tilewidth="70" tileheight="70" infinite="0" nextlayerid="3" nextobjectid="14">
  <editorsettings>
   <export target="iceworld-tilemap.json" format="json"/>
  </editorsettings>
@@ -517,5 +517,12 @@
  </layer>
  <objectgroup id="2" name="objects">
   <object id="2" name="penguin-spawn" x="770.333" y="490.667" width="68.6667" height="68.6667"/>
+  <object id="5" name="star" x="1258.67" y="559.333" width="70" height="70"/>
+  <object id="8" name="star" x="1471" y="487" width="70" height="70"/>
+  <object id="9" name="star" x="-1" y="417" width="70" height="70"/>
+  <object id="10" name="star" x="71" y="421" width="70" height="70"/>
+  <object id="11" name="star" x="3077" y="699" width="70" height="70"/>
+  <object id="12" name="star" x="3291" y="563" width="70" height="70"/>
+  <object id="13" name="star" x="3425" y="695" width="70" height="70"/>
  </objectgroup>
 </map>

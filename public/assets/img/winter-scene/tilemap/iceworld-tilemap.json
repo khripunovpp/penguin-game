@@ -43,6 +43,83 @@
                  "width":68.6666666666667,
                  "x":770.333333333333,
                  "y":490.666666666667
+                }, 
+                {
+                 "height":70,
+                 "id":5,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":1258.66666666667,
+                 "y":559.333333333333
+                }, 
+                {
+                 "height":70,
+                 "id":8,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":1471,
+                 "y":487
+                }, 
+                {
+                 "height":70,
+                 "id":9,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":-1,
+                 "y":417
+                }, 
+                {
+                 "height":70,
+                 "id":10,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":71,
+                 "y":421
+                }, 
+                {
+                 "height":70,
+                 "id":11,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":3077,
+                 "y":699
+                }, 
+                {
+                 "height":70,
+                 "id":12,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":3291,
+                 "y":563
+                }, 
+                {
+                 "height":70,
+                 "id":13,
+                 "name":"star",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":3425,
+                 "y":695
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -51,7 +128,7 @@
          "y":0
         }],
  "nextlayerid":3,
- "nextobjectid":4,
+ "nextobjectid":14,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"git",
