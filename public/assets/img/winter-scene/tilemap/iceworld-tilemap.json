@@ -60,15 +60,15 @@
          "name":"objects",
          "objects":[
                 {
-                 "height":68.6666666666666,
+                 "height":68.6667,
                  "id":2,
                  "name":"penguin-spawn",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":68.6666666666667,
-                 "x":770.333333333333,
-                 "y":490.666666666667
+                 "width":68.6667,
+                 "x":770.333,
+                 "y":490.667
                 }, 
                 {
                  "height":70,
@@ -78,8 +78,8 @@
                  "type":"",
                  "visible":true,
                  "width":70,
-                 "x":1258.66666666667,
-                 "y":559.333333333333
+                 "x":1258.67,
+                 "y":559.333
                 }, 
                 {
                  "height":70,
@@ -168,6 +168,28 @@
                  "width":134,
                  "x":774,
                  "y":632
+                }, 
+                {
+                 "height":68,
+                 "id":18,
+                 "name":"health",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":68,
+                 "x":424,
+                 "y":630
+                }, 
+                {
+                 "height":68,
+                 "id":20,
+                 "name":"health",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":68,
+                 "x":851.75,
+                 "y":491.75
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -176,7 +198,7 @@
          "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":16,
+ "nextobjectid":21,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"git",

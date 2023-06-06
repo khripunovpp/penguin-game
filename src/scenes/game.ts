@@ -28,6 +28,7 @@ export default class Game extends Phaser.Scene {
 
     this.load.image('tiles', 'assets/img/winter-scene/sheet.png');
     this.load.image('star', 'assets/img/items/star.png');
+    this.load.image('health', 'assets/img/items/health-pill.png');
     this.load.tilemapTiledJSON('tilemap', 'assets/img/winter-scene/tilemap/iceworld-tilemap.json');
   }
 
@@ -95,6 +96,20 @@ export default class Game extends Phaser.Scene {
 
           this.obstacles?.add('spikes', spike);
 
+          break;
+
+        case 'health':
+          const health = this.matter.add.sprite(
+            x + (width * 0.5),
+            y + (height * 0.5),
+            'health',
+            undefined,
+            {
+              isStatic: true,
+              isSensor: true,
+            }
+          );
+          health.setData('type', 'health');
           break;
       }
     });

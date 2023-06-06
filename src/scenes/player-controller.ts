@@ -13,6 +13,7 @@ export class PlayerController {
     this.cursors = cursors;
     this.obstacles = obstacles;
     this.scene = scene;
+    this.healthPoints = 100;
 
     this._createAnimations();
     this.stateMachine = new StateMachine(this, 'player-controller');
@@ -41,6 +42,7 @@ export class PlayerController {
 
       if (this.obstacles?.is('spikes', body)) {
         this.stateMachine?.setState('spike-hit');
+        events.emit('spike-hit');
         return;
       }
 
@@ -61,6 +63,13 @@ export class PlayerController {
           events.emit('star-collected');
           sprite.destroy();
           break;
+
+        case 'health':
+          const value= this.sprite.getData('healthPoints') ?? 10;
+          this.healthPoints = Phaser.Math.Clamp(this.healthPoints + value, 0, 100);
+          events.emit('health-collected', this.healthPoints);
+          sprite.destroy();
+          break;
       }
     })
 
@@ -71,6 +80,7 @@ export class PlayerController {
   private stateMachine: StateMachine | undefined;
   private obstacles: ObstaclesController;
   private scene: Phaser.Scene;
+  private healthPoints: number = 100;
 
   update(dt: number) {
     this.stateMachine?.update(dt);
@@ -78,6 +88,8 @@ export class PlayerController {
 
   private _spikeHitOnEnter() {
     this.sprite.setVelocityY(-12);
+    this.healthPoints = Phaser.Math.Clamp(this.healthPoints - 10, 0, 100);
+    events.emit('health-collected', this.healthPoints);
 
     const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
     const endColor = Phaser.Display.Color.ValueToColor(0xff0000);
@@ -114,7 +126,7 @@ export class PlayerController {
   }
 
   private _walkOnUpdate() {
-    const speed = 4;
+    const speed = 6;
     if (this.cursors.left?.isDown) {
       this.sprite.flipX = true;
       this.sprite.setVelocityX(-speed);

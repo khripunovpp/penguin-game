@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="git" orientation="orthogonal" renderorder="right-down" width="50" height="15" tilewidth="70" tileheight="70" infinite="0" nextlayerid="4" nextobjectid="16">
+<map version="1.10" tiledversion="git" orientation="orthogonal" renderorder="right-down" width="50" height="15" tilewidth="70" tileheight="70" infinite="0" nextlayerid="4" nextobjectid="21">
  <editorsettings>
   <export target="iceworld-tilemap.json" format="json"/>
  </editorsettings>
@@ -545,5 +545,7 @@
   <object id="13" name="star" x="3425" y="695" width="70" height="70"/>
   <object id="14" name="spikes" x="284" y="734" width="200" height="32"/>
   <object id="15" name="spikes" x="774" y="632" width="134" height="24"/>
+  <object id="18" name="health" x="424" y="630" width="68" height="68"/>
+  <object id="20" name="health" x="840" y="488" width="68" height="68"/>
  </objectgroup>
 </map>
