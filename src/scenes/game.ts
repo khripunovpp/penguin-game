@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import {PlayerController} from "./player-controller";
 import ObstaclesController from "./obstacles-controller";
+import SnowmanController from "./snowman-controller";
 
 export default class Game extends Phaser.Scene {
 
@@ -9,15 +10,20 @@ export default class Game extends Phaser.Scene {
   }
 
   penguin: Phaser.Physics.Matter.Sprite | undefined;
+  snowman: Phaser.Physics.Matter.Sprite | undefined;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private onGround = false;
   private playerController: PlayerController | undefined;
+  private snowmanControllers: SnowmanController[] = [];
   private obstacles!: ObstaclesController | undefined;
 
   init() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.scene.launch('ui');
     this.obstacles = new ObstaclesController();
+    this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+      this.destroy();
+    })
   }
 
   preload() {
@@ -25,6 +31,11 @@ export default class Game extends Phaser.Scene {
       'penguin',
       'assets/img/sprites/penguin/penguin-moves-sprite.png',
       'assets/img/sprites/penguin/penguin-moves-sprite.json');
+
+    this.load.atlas(
+      'snowman',
+      'assets/img/sprites/snowman/snowman-moves-sprite.png',
+      'assets/img/sprites/snowman/snowman-moves-sprite.json');
 
     this.load.image('tiles', 'assets/img/winter-scene/sheet.png');
     this.load.image('star', 'assets/img/items/star.png');
@@ -69,6 +80,25 @@ export default class Game extends Phaser.Scene {
 
           // this.penguin.setPosition(x + width * 0.5, y - height * 0.5);
           break;
+
+        case 'snowman-spawn':
+          this.snowman = this.matter.add.sprite(
+            x + (width * 0.5),
+            y,
+            'snowman',
+            'snowman-front.png')
+            .play('snowman-idle')
+            .setFixedRotation();
+
+          this.snowmanControllers.push(new SnowmanController(
+            this.snowman,
+            this,
+          ));
+
+          this.obstacles?.add('snowman', this.snowman.body as MatterJS.BodyType);
+
+          break;
+
         case 'star':
           const star = this.matter.add.sprite(
             x + (width * 0.5),
@@ -120,5 +150,15 @@ export default class Game extends Phaser.Scene {
   update(_t: number, dt: number) {
     if (!this.playerController) return
     this.playerController.update(dt);
+
+    this.snowmanControllers.forEach(snowmanController => {
+      snowmanController.update(dt);
+    });
+  }
+
+  destroy() {
+    this.snowmanControllers.forEach(snowmanController => {
+      snowmanController.destroy();
+    });
   }
 }

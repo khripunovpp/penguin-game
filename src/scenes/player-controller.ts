@@ -33,6 +33,12 @@ export class PlayerController {
       .addState('spike-hit', {
         onEnter: this._spikeHitOnEnter,
       })
+      .addState('snowman-hit', {
+        onEnter: this._snowmanHitOnEnter,
+      })
+      .addState('snowman-stomp', {
+        onEnter: this._snowmanStompOnEnter,
+      })
       .setState('idle');
 
 
@@ -43,6 +49,16 @@ export class PlayerController {
       if (this.obstacles?.is('spikes', body)) {
         this.stateMachine?.setState('spike-hit');
         events.emit('spike-hit');
+        return;
+      }
+
+      if (this.obstacles?.is('snowman', body)) {
+        this.lastSnowman = gameObject;
+        if (this.sprite.y < body.position.y) {
+          this.stateMachine?.setState('snowman-stomp');
+        } else {
+          this.stateMachine?.setState('snowman-hit');
+        }
         return;
       }
 
@@ -65,7 +81,7 @@ export class PlayerController {
           break;
 
         case 'health':
-          const value= this.sprite.getData('healthPoints') ?? 10;
+          const value = this.sprite.getData('healthPoints') ?? 10;
           this.healthPoints = Phaser.Math.Clamp(this.healthPoints + value, 0, 100);
           events.emit('health-collected', this.healthPoints);
           sprite.destroy();
@@ -81,6 +97,7 @@ export class PlayerController {
   private obstacles: ObstaclesController;
   private scene: Phaser.Scene;
   private healthPoints: number = 100;
+  private lastSnowman: Phaser.Physics.Matter.Sprite | undefined;
 
   update(dt: number) {
     this.stateMachine?.update(dt);
@@ -121,12 +138,64 @@ export class PlayerController {
     this.stateMachine?.setState('idle');
   }
 
+  private _snowmanHitOnEnter() {
+    if (this.lastSnowman) {
+      if (this.sprite.x < this.lastSnowman.x) {
+        this.sprite.setVelocityX(-12);
+      } else {
+        this.sprite.setVelocityX(12);
+      }
+    } else {
+      this.sprite.setVelocityY(-12);
+    }
+
+    this.healthPoints = Phaser.Math.Clamp(this.healthPoints - 10, 0, 100);
+    events.emit('health-collected', this.healthPoints);
+
+    const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
+    const endColor = Phaser.Display.Color.ValueToColor(0x00ff00);
+
+    this.scene.tweens.addCounter({
+      from: 0,
+      to: 100,
+      duration: 100,
+      repeat: 2,
+      yoyo: true,
+      onUpdate: (tween) => {
+        const value = tween.getValue();
+        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
+          startColor,
+          endColor,
+          100,
+          value,
+        );
+
+        const color = Phaser.Display.Color.GetColor(
+          colorObject.r,
+          colorObject.g,
+          colorObject.b,
+        );
+
+        this.sprite.setTint(color);
+      },
+    })
+    this.stateMachine?.setState('idle');
+  }
+
+  private _snowmanStompOnEnter() {
+    this.sprite.setVelocityY(-12);
+
+    events.emit('snowman-stomped', this.lastSnowman);
+
+    this.stateMachine?.setState('idle');
+  }
+
   private _walkOnEnter() {
     this.sprite?.play('penguin-walk');
   }
 
   private _walkOnUpdate() {
-    const speed = 6;
+    const speed = 4;
     if (this.cursors.left?.isDown) {
       this.sprite.flipX = true;
       this.sprite.setVelocityX(-speed);
