@@ -27,7 +27,7 @@ export default class UI extends Phaser.Scene {
 
     events.on('health-collected', this._onHealthCollected, this);
 
-    this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       events.off('star-collected', this._onStarCollected, this);
       events.off('health-collected', this._onHealthCollected, this);
     })

@@ -21,7 +21,7 @@ export default class Game extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.scene.launch('ui');
     this.obstacles = new ObstaclesController();
-    this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.destroy();
     })
   }
@@ -157,6 +157,7 @@ export default class Game extends Phaser.Scene {
   }
 
   destroy() {
+    this.scene.stop('ui');
     this.snowmanControllers.forEach(snowmanController => {
       snowmanController.destroy();
     });

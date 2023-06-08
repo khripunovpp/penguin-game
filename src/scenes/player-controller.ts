@@ -39,6 +39,9 @@ export class PlayerController {
       .addState('snowman-stomp', {
         onEnter: this._snowmanStompOnEnter,
       })
+      .addState('dead', {
+        onEnter: this._deadOnEnter,
+      })
       .setState('idle');
 
 
@@ -105,8 +108,6 @@ export class PlayerController {
 
   private _spikeHitOnEnter() {
     this.sprite.setVelocityY(-12);
-    this.healthPoints = Phaser.Math.Clamp(this.healthPoints - 10, 0, 100);
-    events.emit('health-collected', this.healthPoints);
 
     const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
     const endColor = Phaser.Display.Color.ValueToColor(0xff0000);
@@ -136,6 +137,7 @@ export class PlayerController {
       },
     })
     this.stateMachine?.setState('idle');
+    this._setHealthPoints(this.healthPoints - 10);
   }
 
   private _snowmanHitOnEnter() {
@@ -149,8 +151,6 @@ export class PlayerController {
       this.sprite.setVelocityY(-12);
     }
 
-    this.healthPoints = Phaser.Math.Clamp(this.healthPoints - 10, 0, 100);
-    events.emit('health-collected', this.healthPoints);
 
     const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
     const endColor = Phaser.Display.Color.ValueToColor(0x00ff00);
@@ -180,6 +180,8 @@ export class PlayerController {
       },
     })
     this.stateMachine?.setState('idle');
+
+    this._setHealthPoints(this.healthPoints - 10);
   }
 
   private _snowmanStompOnEnter() {
@@ -244,6 +246,29 @@ export class PlayerController {
     }
   }
 
+  private _deadOnEnter() {
+    this.sprite?.setTint(0xff0000);
+    this.sprite?.setVelocityY(-12);
+    this.sprite?.play('penguin-die');
+
+    this.sprite.setOnCollide(() => {
+    });
+
+    this.scene.time.delayedCall(1000, () => {
+      this.scene.scene.start('game-over');
+    });
+  }
+
+  private _setHealthPoints(healthPoints: number) {
+    this.healthPoints = Phaser.Math.Clamp(healthPoints, 0, 100);
+
+    events.emit('health-collected', this.healthPoints);
+
+    if (this.healthPoints <= 0) {
+      this.stateMachine?.setState('dead');
+    }
+  }
+
   private _createAnimations() {
     this.sprite?.anims.create({
       key: 'penguin-idle',
@@ -275,6 +300,18 @@ export class PlayerController {
       }),
       frameRate: 10,
       repeat: -1,
-    })
+    });
+
+    this.sprite?.anims.create({
+      key: 'penguin-die',
+      frames: this.sprite?.anims.generateFrameNames('penguin', {
+        start: 1,
+        end: 3,
+        prefix: 'penguin_die0',
+        suffix: '.png',
+      }),
+      frameRate: 10,
+      repeat: 0,
+    });
   }
 }

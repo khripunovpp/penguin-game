@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import Game from "./scenes/game";
 import UI from "./scenes/ui";
+import GameOver from "./scenes/game-over";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -16,6 +17,7 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [
     Game,
     UI,
+    GameOver,
   ],
 }
 

@@ -64,17 +64,15 @@ export default class SnowmanController {
   private _leftOnUpdate(
     dt: number,
   ) {
-    try {
 
-      this.actionTime += dt;
-      this.sprite?.setVelocityX(-2);
+    if (!this.sprite?.body) return;
+    this.actionTime += dt;
+    this.sprite?.setVelocityX(-2);
 
-      if (this.actionTime > this.actionDuration) {
-        this.stateMachine?.setState('right');
-      }
-    } catch (err) {
-      console.log(err);
+    if (this.actionTime > this.actionDuration) {
+      this.stateMachine?.setState('right');
     }
+
   }
 
   private _rightOnEnter() {
@@ -85,17 +83,15 @@ export default class SnowmanController {
   private _rightOnUpdate(
     dt: number,
   ) {
-    try {
 
-      this.actionTime += dt;
-      this.sprite?.setVelocityX(2);
+    if (!this.sprite?.body) return;
+    this.actionTime += dt;
+    this.sprite?.setVelocityX(2);
 
-      if (this.actionTime > this.actionDuration) {
-        this.stateMachine?.setState('left');
-      }
-    } catch (err) {
-      console.log(err);
+    if (this.actionTime > this.actionDuration) {
+      this.stateMachine?.setState('left');
     }
+
   }
 
   private _onSnowmanStomped(
