@@ -3,6 +3,27 @@ import {PlayerController} from "./player-controller";
 import ObstaclesController from "./obstacles-controller";
 import SnowmanController from "./snowman-controller";
 
+/**
+ *
+ * @param {Phaser.Scene} scene
+ * @param {number} totalWidth
+ * @param {string} texture
+ * @param {number} scrollFactor
+ */
+const createAligned = (scene, totalWidth, texture, scrollFactor) => {
+  const w = scene.textures.get(texture).getSourceImage().width
+  const count = Math.ceil(totalWidth / w) * scrollFactor
+
+  let x = 0
+  for (let i = 0; i < count; ++i) {
+    const m = scene.add.image(x, scene.scale.height + 300, texture)
+      .setOrigin(0, 1)
+      .setScrollFactor(scrollFactor)
+
+    x += m.width
+  }
+}
+
 export default class Game extends Phaser.Scene {
 
   constructor() {
@@ -41,9 +62,25 @@ export default class Game extends Phaser.Scene {
     this.load.image('star', 'assets/img/items/star.png');
     this.load.image('health', 'assets/img/items/health-pill.png');
     this.load.tilemapTiledJSON('tilemap', 'assets/img/winter-scene/tilemap/iceworld-tilemap.json');
+
+    this.load.image('mountains-back', 'assets/img/winter-scene/background/hills.png');
+    this.load.image('mountains-mid1', 'assets/img/winter-scene/background/hills-2.png');
+    this.load.image('mountains-mid2', 'assets/img/winter-scene/background/hills-3.png');
+
   }
 
   create() {
+    const {width, height} = this.scale;
+
+    const totalWidth = width * 10;
+
+    createAligned(this, totalWidth, 'mountains-back', 0.25)
+    createAligned(this, totalWidth, 'mountains-mid2', 0.5)
+    createAligned(this, totalWidth, 'mountains-mid1', 0.75)
+
+    this.cameras.main.setBounds(0, 0, totalWidth, height * 5);
+
+
     const map = this.make.tilemap({key: 'tilemap'});
     const tileset = map.addTilesetImage('iceworld', 'tiles');
 
