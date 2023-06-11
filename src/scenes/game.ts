@@ -28,8 +28,19 @@ export default class Game extends Phaser.Scene {
 
   constructor() {
     super('game');
+
+    this.worldWidth = this.tileDimensions.width * this.tilesX;
+    this.worldHeight = this.tileDimensions.height * this.tilesY;
   }
 
+  private tileDimensions = {
+    width: 70,
+    height: 70,
+  };
+  private tilesX = 100;
+  private tilesY = 15;
+  private worldWidth = 0;
+  private worldHeight = 0;
   penguin: Phaser.Physics.Matter.Sprite | undefined;
   snowman: Phaser.Physics.Matter.Sprite | undefined;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -72,14 +83,13 @@ export default class Game extends Phaser.Scene {
   create() {
     const {width, height} = this.scale;
 
-    const totalWidth = width * 10;
 
-    createAligned(this, totalWidth, 'mountains-back', 0.25)
-    createAligned(this, totalWidth, 'mountains-mid2', 0.5)
-    createAligned(this, totalWidth, 'mountains-mid1', 0.75)
+    createAligned(this, this.worldWidth, 'mountains-back', 0.25)
+    createAligned(this, this.worldWidth, 'mountains-mid2', 0.5)
+    createAligned(this, this.worldWidth, 'mountains-mid1', 0.75)
 
-    this.cameras.main.setBounds(0, 0, totalWidth, height * 5);
-    this.matter.world.setBounds(0, 0, totalWidth, height * 5);
+    this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
+    this.matter.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
     const map = this.make.tilemap({key: 'tilemap'});
     const tileset = map.addTilesetImage('iceworld', 'tiles');
