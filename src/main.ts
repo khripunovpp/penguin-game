@@ -6,8 +6,8 @@ import GameOver from "./scenes/game-over";
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'app',
-  width: 600,
-  height: 600,
+  width: 500,
+  height: 500,
   physics: {
     default: 'matter',
     matter: {

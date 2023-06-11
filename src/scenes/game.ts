@@ -16,9 +16,9 @@ const createAligned = (scene, totalWidth, texture, scrollFactor) => {
 
   let x = 0
   for (let i = 0; i < count; ++i) {
-    const m = scene.add.image(x, scene.scale.height + 300, texture)
+    const m = scene.add.image(x, scene.scale.height +200, texture)
       .setOrigin(0, 1)
-      .setScrollFactor(scrollFactor)
+      .setScrollFactor(scrollFactor,0)
 
     x += m.width
   }
@@ -79,7 +79,7 @@ export default class Game extends Phaser.Scene {
     createAligned(this, totalWidth, 'mountains-mid1', 0.75)
 
     this.cameras.main.setBounds(0, 0, totalWidth, height * 5);
-
+    this.matter.world.setBounds(0, 0, totalWidth, height * 5);
 
     const map = this.make.tilemap({key: 'tilemap'});
     const tileset = map.addTilesetImage('iceworld', 'tiles');
