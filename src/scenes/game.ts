@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
-import {PlayerController} from "./player-controller";
-import ObstaclesController from "./obstacles-controller";
-import SnowmanController from "./snowman-controller";
-
+import SnowmanController from "../objects/snowman-controller";
+import {PlayerController} from "../objects/player-controller";
+import ObstaclesController from "../objects/obstacles-controller";
 /**
  *
  * @param {Phaser.Scene} scene
@@ -10,7 +9,12 @@ import SnowmanController from "./snowman-controller";
  * @param {string} texture
  * @param {number} scrollFactor
  */
-const createAligned = (scene, totalWidth, texture, scrollFactor) => {
+const createAligned = (
+  scene: Phaser.Scene,
+  totalWidth: number,
+  texture: string,
+  scrollFactor: number = 1,
+) => {
   const w = scene.textures.get(texture).getSourceImage().width
   const count = Math.ceil(totalWidth / w) * scrollFactor
 

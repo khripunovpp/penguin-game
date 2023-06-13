@@ -1,5 +1,5 @@
 import StateMachine from "../state-machine/state-machine";
-import {sharedInstance as events} from "./event-center";
+import {sharedInstance as events} from "./../services/event-center";
 import ObstaclesController from "./obstacles-controller";
 
 export class PlayerController {

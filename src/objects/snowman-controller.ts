@@ -1,5 +1,5 @@
 import StateMachine from "../state-machine/state-machine";
-import {sharedInstance as events} from "./event-center";
+import {sharedInstance as events} from "./../services/event-center";
 
 export default class SnowmanController {
   constructor(
