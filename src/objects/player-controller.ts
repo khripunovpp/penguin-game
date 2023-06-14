@@ -3,10 +3,29 @@ import {sharedInstance as events} from "./../services/event-center";
 import ObstaclesController from "./obstacles-controller";
 
 export class PlayerController {
+
+  private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+  private sprite: Phaser.Physics.Matter.Sprite;
+  private stateMachine: StateMachine | undefined;
+  private obstacles: ObstaclesController;
+  private scene: Phaser.Scene;
+  private healthPoints: number = 100;
+  private lastSnowman: Phaser.Physics.Matter.Sprite | undefined;
+  private inWater: boolean;
+  private platforms: MatterJS.BodyType[];
+  private baseHitTintColor: string = '#ff0000';
+  private spikeHitHealthPoints: number = 10;
+  private spikeHitTintColor: string = this.baseHitTintColor;
+  private waterHitHealthPoints: number = 5;
+  private waterHitTintColor: string = '#0000ff';
+  private snowmanHitHealthPoints: number = 10;
+  private snowmanHitTintColor: string = this.baseHitTintColor;
+
   constructor(
     sprite: Phaser.Physics.Matter.Sprite,
     cursors: Phaser.Types.Input.Keyboard.CursorKeys,
     obstacles: ObstaclesController,
+    platfroms: MatterJS.BodyType[],
     scene: Phaser.Scene,
   ) {
     this.sprite = sprite;
@@ -14,6 +33,8 @@ export class PlayerController {
     this.obstacles = obstacles;
     this.scene = scene;
     this.healthPoints = 100;
+    this.inWater = false;
+    this.platforms = platfroms;
 
     this._createAnimations();
     this.stateMachine = new StateMachine(this, 'player-controller');
@@ -48,6 +69,17 @@ export class PlayerController {
       })
       .setState('idle');
 
+    this.sprite.setOnCollideEnd((data: any) => {
+      console.log({
+        bodyEnd: data.bodyB,
+        sprite_y: this.sprite.y,
+        body_y: data.bodyB.position.y,
+      });
+
+      if (this.obstacles?.is('water', data.bodyB)) {
+        this.inWater = data.bodyB.position.y < this.sprite.y;
+      }
+    });
 
     this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
@@ -60,13 +92,29 @@ export class PlayerController {
       }
 
       if (this.obstacles?.is('water', body)) {
+        this.inWater = true;
+        console.log({
+          body,
+          sprite_y: this.sprite.y,
+          body_y: body.position.y,
+        });
         this.stateMachine?.setState('water-hit');
         events.emit('water-hit');
         return;
       }
 
+      if (this.platforms?.includes(body)) {
+        this.stateMachine?.setState('idle');
+        return;
+      }
+
       if (this.obstacles?.is('snowman', body)) {
         this.lastSnowman = gameObject;
+        console.log({
+          snowmanBody: body,
+          sprite_y: this.sprite.y,
+          body_y: body.position.y,
+        })
         if (this.sprite.y < body.position.y) {
           this.stateMachine?.setState('snowman-stomp');
         } else {
@@ -104,30 +152,27 @@ export class PlayerController {
 
   }
 
-  private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  private sprite: Phaser.Physics.Matter.Sprite;
-  private stateMachine: StateMachine | undefined;
-  private obstacles: ObstaclesController;
-  private scene: Phaser.Scene;
-  private healthPoints: number = 100;
-  private lastSnowman: Phaser.Physics.Matter.Sprite | undefined;
-
   update(dt: number) {
     this.stateMachine?.update(dt);
+
   }
 
   private _spikeHitOnEnter() {
     this.sprite.setVelocityY(-12);
-    this._setTint('#ff0000');
-    this.stateMachine?.setState('idle');
-    this._setHealthPoints(this.healthPoints - 10);
+    this._hitHandler(this.spikeHitTintColor, this.spikeHitHealthPoints);
   }
 
   private _waterHitOnEnter() {
     // this.sprite.setVelocityY(-3);
-    this._setTint('#0000ff',-1);
-    this.stateMachine?.setState('idle');
-    this._setHealthPoints(this.healthPoints - 1);
+    this.scene.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        if (this.inWater) {
+          this.stateMachine?.setState('water-hit');
+        }
+      },
+    });
+    this._hitHandler(this.waterHitTintColor, this.waterHitHealthPoints);
   }
 
   private _waterHitOnExit() {
@@ -145,9 +190,16 @@ export class PlayerController {
       this.sprite.setVelocityY(-12);
     }
 
-    this._setTint('#00ff00');
+    this._hitHandler(this.snowmanHitTintColor, this.snowmanHitHealthPoints);
+  }
 
-    this._setHealthPoints(this.healthPoints - 10);
+  private _hitHandler(
+    color: string,
+    helathPoints: number,
+  ) {
+    this._setTint(color);
+    this.stateMachine?.setState('idle');
+    this._setHealthPoints(this.healthPoints - helathPoints);
   }
 
   private _setTint(
@@ -227,6 +279,8 @@ export class PlayerController {
       this.sprite.setVelocityX(-speed);
     } else if (this.cursors.right?.isDown) {
       this.sprite.setVelocityX(speed);
+    } else {
+      this.sprite.setVelocityX(0);
     }
   }
 

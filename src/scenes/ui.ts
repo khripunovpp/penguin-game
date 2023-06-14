@@ -2,18 +2,17 @@ import Phaser from 'phaser';
 import {sharedInstance as events} from "../services/event-center";
 
 export default class UI extends Phaser.Scene {
+  private graphics!: Phaser.GameObjects.Graphics;
+  private starsLabel!: Phaser.GameObjects.Text | undefined;
+  private starsCollected: number = 0;
+  private healthLevel: number = 0;
+  private healthBarWidth: number = 200;
+
   constructor() {
     super({
       key: 'ui',
     });
   }
-
-  private graphics!: Phaser.GameObjects.Graphics;
-  private starsLabel!: Phaser.GameObjects.Text | undefined;
-  private healthLabel!: Phaser.GameObjects.Text | undefined;
-  private starsCollected: number = 0;
-  private healthLevel: number = 0;
-  private healthBarWidth: number = 200;
 
   init() {
     this.starsCollected = 0;
@@ -48,7 +47,7 @@ export default class UI extends Phaser.Scene {
   private _addHealthLabel(
     percents: number,
   ) {
-    const percent = Phaser.Math.Clamp(percents,0,100);
+    const percent = Phaser.Math.Clamp(percents, 0, 100);
     console.log({
       percent
     })

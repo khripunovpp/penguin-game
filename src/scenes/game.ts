@@ -31,12 +31,6 @@ const createAligned = (
 
 export default class Game extends Phaser.Scene {
 
-  constructor() {
-    super('game');
-    this.worldWidth = this.tileDimensions.width * this.tilesX;
-    this.worldHeight = this.tileDimensions.height * this.tilesY;
-  }
-
   penguin: Phaser.Physics.Matter.Sprite | undefined;
   snowman: Phaser.Physics.Matter.Sprite | undefined;
   private tileDimensions = {
@@ -48,10 +42,16 @@ export default class Game extends Phaser.Scene {
   private worldWidth = 0;
   private worldHeight = 0;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private onGround = false;
   private playerController: PlayerController | undefined;
   private snowmanControllers: SnowmanController[] = [];
   private obstacles!: ObstaclesController | undefined;
+  private platforms!: MatterJS.BodyType[];
+
+  constructor() {
+    super('game');
+    this.worldWidth = this.tileDimensions.width * this.tilesX;
+    this.worldHeight = this.tileDimensions.height * this.tilesY;
+  }
 
   init() {
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -59,7 +59,8 @@ export default class Game extends Phaser.Scene {
     this.obstacles = new ObstaclesController();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.destroy();
-    })
+    });
+    this.platforms = [];
   }
 
   preload() {
@@ -85,9 +86,6 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
-    const {width, height} = this.scale;
-
-
     createAligned(this, this.worldWidth, 'mountains-back', 0.25)
     createAligned(this, this.worldWidth, 'mountains-mid2', 0.5)
     createAligned(this, this.worldWidth, 'mountains-mid1', 0.75)
@@ -101,7 +99,7 @@ export default class Game extends Phaser.Scene {
     const ground = map.createLayer('ground', tileset);
     ground.setCollisionByProperty({collides: true});
 
-    const obstacles = map.createLayer('obstacles', tileset);
+    map.createLayer('obstacles', tileset);
 
     this.cameras.main.scrollY = 300;
 
@@ -123,7 +121,8 @@ export default class Game extends Phaser.Scene {
           this.playerController = new PlayerController(
             this.penguin,
             this.cursors,
-            this.obstacles,
+            this.obstacles as any,
+            this.platforms,
             this,
           );
 
@@ -176,7 +175,29 @@ export default class Game extends Phaser.Scene {
             },
           );
 
+
           this.obstacles?.add('water', water);
+
+          break;
+
+        case 'platform':
+          const platform = this.matter.add.rectangle(
+            x + (width * 0.5),
+            y + (height * 0.5),
+            width,
+            height,
+            {
+              isStatic: true,
+            }
+          );
+
+          this.platforms?.push(platform);
+
+          if (this.penguin) {
+            this.penguin.setOnCollideWith(platform, () => {
+              console.log('collide penguin with platform')
+            });
+          }
 
           break;
 
