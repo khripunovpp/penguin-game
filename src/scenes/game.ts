@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import SnowmanController from "../objects/snowman-controller";
 import {PlayerController} from "../objects/player-controller";
 import ObstaclesController from "../objects/obstacles-controller";
+
 /**
  *
  * @param {Phaser.Scene} scene
@@ -20,9 +21,9 @@ const createAligned = (
 
   let x = 0
   for (let i = 0; i < count; ++i) {
-    const m = scene.add.image(x, scene.scale.height +200, texture)
+    const m = scene.add.image(x, scene.scale.height + 200, texture)
       .setOrigin(0, 1)
-      .setScrollFactor(scrollFactor,0)
+      .setScrollFactor(scrollFactor, 0)
 
     x += m.width
   }
@@ -32,11 +33,12 @@ export default class Game extends Phaser.Scene {
 
   constructor() {
     super('game');
-
     this.worldWidth = this.tileDimensions.width * this.tilesX;
     this.worldHeight = this.tileDimensions.height * this.tilesY;
   }
 
+  penguin: Phaser.Physics.Matter.Sprite | undefined;
+  snowman: Phaser.Physics.Matter.Sprite | undefined;
   private tileDimensions = {
     width: 70,
     height: 70,
@@ -45,8 +47,6 @@ export default class Game extends Phaser.Scene {
   private tilesY = 15;
   private worldWidth = 0;
   private worldHeight = 0;
-  penguin: Phaser.Physics.Matter.Sprite | undefined;
-  snowman: Phaser.Physics.Matter.Sprite | undefined;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private onGround = false;
   private playerController: PlayerController | undefined;
@@ -162,6 +162,22 @@ export default class Game extends Phaser.Scene {
             }
           );
           star.setData('type', 'star');
+          break;
+
+        case 'water':
+          const water = this.matter.add.rectangle(
+            x + (width * 0.5),
+            y + (height * 0.5),
+            width,
+            height,
+            {
+              isStatic: true,
+              isSensor: true,
+            },
+          );
+
+          this.obstacles?.add('water', water);
+
           break;
 
         case 'spikes':

@@ -33,6 +33,10 @@ export class PlayerController {
       .addState('spike-hit', {
         onEnter: this._spikeHitOnEnter,
       })
+      .addState('water-hit', {
+        onEnter: this._waterHitOnEnter,
+        onExit: this._waterHitOnExit,
+      })
       .addState('snowman-hit', {
         onEnter: this._snowmanHitOnEnter,
       })
@@ -52,6 +56,12 @@ export class PlayerController {
       if (this.obstacles?.is('spikes', body)) {
         this.stateMachine?.setState('spike-hit');
         events.emit('spike-hit');
+        return;
+      }
+
+      if (this.obstacles?.is('water', body)) {
+        this.stateMachine?.setState('water-hit');
+        events.emit('water-hit');
         return;
       }
 
@@ -108,36 +118,20 @@ export class PlayerController {
 
   private _spikeHitOnEnter() {
     this.sprite.setVelocityY(-12);
-
-    const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
-    const endColor = Phaser.Display.Color.ValueToColor(0xff0000);
-
-    this.scene.tweens.addCounter({
-      from: 0,
-      to: 100,
-      duration: 100,
-      repeat: 2,
-      yoyo: true,
-      onUpdate: (tween) => {
-        const value = tween.getValue();
-        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
-          startColor,
-          endColor,
-          100,
-          value,
-        );
-
-        const color = Phaser.Display.Color.GetColor(
-          colorObject.r,
-          colorObject.g,
-          colorObject.b,
-        );
-
-        this.sprite.setTint(color);
-      },
-    })
+    this._setTint('#ff0000');
     this.stateMachine?.setState('idle');
     this._setHealthPoints(this.healthPoints - 10);
+  }
+
+  private _waterHitOnEnter() {
+    // this.sprite.setVelocityY(-3);
+    this._setTint('#0000ff',-1);
+    this.stateMachine?.setState('idle');
+    this._setHealthPoints(this.healthPoints - 1);
+  }
+
+  private _waterHitOnExit() {
+    console.log('water hit exit');
   }
 
   private _snowmanHitOnEnter() {
@@ -151,15 +145,24 @@ export class PlayerController {
       this.sprite.setVelocityY(-12);
     }
 
+    this._setTint('#00ff00');
+
+    this._setHealthPoints(this.healthPoints - 10);
+  }
+
+  private _setTint(
+    color: string,
+    repeat: number = 2,
+  ) {
 
     const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
-    const endColor = Phaser.Display.Color.ValueToColor(0x00ff00);
+    const endColor = Phaser.Display.Color.ValueToColor(color);
 
-    this.scene.tweens.addCounter({
+    return this.scene.tweens.addCounter({
       from: 0,
       to: 100,
       duration: 100,
-      repeat: 2,
+      repeat: repeat,
       yoyo: true,
       onUpdate: (tween) => {
         const value = tween.getValue();
@@ -179,9 +182,6 @@ export class PlayerController {
         this.sprite.setTint(color);
       },
     })
-    this.stateMachine?.setState('idle');
-
-    this._setHealthPoints(this.healthPoints - 10);
   }
 
   private _snowmanStompOnEnter() {
