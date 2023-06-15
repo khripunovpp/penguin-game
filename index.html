@@ -2,14 +2,43 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>My Phaser 3 Game</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Phaser 3 Game</title>
+    <style>
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            display: flex;
+
+        }
+
+        .controls button {
+            flex: 1;
+            background: #eee;
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+
+        #jump {
+            flex: 2;
+        }
+    </style>
 </head>
 
 <body>
-	<div id="app"></div>
-	<script type="module" src="src/main.ts"></script>
+<div class="container">
+    <div id="app"></div>
+    <div class="controls">
+        <button id="left">Left</button>
+        <button id="jump">Jump</button>
+        <button id="right">Right</button>
+    </div>
+</div>
+<script type="module" src="src/main.ts"></script>
 </body>
 
 </html>

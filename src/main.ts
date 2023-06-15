@@ -22,6 +22,10 @@ const config: Phaser.Types.Core.GameConfig = {
     GameOver,
   ],
   backgroundColor: '#99ead2',
-}
+};
 
-export default new Phaser.Game(config)
+const game = new Phaser.Game(config);
+
+
+
+export default game;
