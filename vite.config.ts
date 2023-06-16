@@ -6,6 +6,6 @@ export default defineConfig({
 	clearScreen: false,
 	build: {
     outDir: 'docs',
-		assetsDir: './',
-  }
+  },
+	base: '',
 })
