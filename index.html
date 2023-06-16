@@ -3,17 +3,29 @@
 
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=500, min-width=500, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0"/>
     <title>My Phaser 3 Game</title>
     <style>
+        body{
+            touch-action: none;
+            -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;
+        }
         .container {
             max-width: 500px;
             margin: 0 auto;
+            -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;
         }
 
         .controls {
-            display: flex;
+            display: none;
 
+            -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            .controls {
+            display: flex;
+            }
         }
 
         .controls button {
@@ -21,10 +33,11 @@
             background: #eee;
             border: 1px solid #ccc;
             padding: 20px;
+            -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;
         }
 
-        #jump {
-            flex: 2;
+        .controls button:selected {
+            background: #ccc;
         }
     </style>
 </head>
@@ -33,9 +46,18 @@
 <div class="container">
     <div id="app"></div>
     <div class="controls">
-        <button id="left">Left</button>
-        <button id="jump">Jump</button>
-        <button id="right">Right</button>
+        <button id="left" unselectable="on"
+ onselectstart="return false;"
+ onmousedown="return false;" type="button">Left</button>
+        <button id="stop" unselectable="on"
+ onselectstart="return false;"
+ onmousedown="return false;" type="button">Stop</button>
+        <button id="jump" unselectable="on"
+ onselectstart="return false;"
+ onmousedown="return false;" type="button">Jump</button>
+        <button id="right" unselectable="on"
+ onselectstart="return false;"
+ onmousedown="return false;" type="button">Right</button>
     </div>
 </div>
 <script type="module" src="src/main.ts"></script>

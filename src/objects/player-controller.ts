@@ -1,6 +1,7 @@
 import StateMachine from "../state-machine/state-machine";
 import {sharedInstance as events} from "./../services/event-center";
 import ObstaclesController from "./obstacles-controller";
+import {controlsService} from "../services/controls-service";
 
 export class PlayerController {
 
@@ -20,6 +21,8 @@ export class PlayerController {
   private waterHitTintColor: string = '#0000ff';
   private snowmanHitHealthPoints: number = 10;
   private snowmanHitTintColor: string = this.baseHitTintColor;
+  private walkSpeed: number = 4;
+  private jumpSpeed: number = 4;
 
   constructor(
     sprite: Phaser.Physics.Matter.Sprite,
@@ -35,8 +38,10 @@ export class PlayerController {
     this.healthPoints = 100;
     this.inWater = false;
     this.platforms = platfroms;
+    this.walkSpeed = controlsService.isTouchDevice ? 8 : 4;
 
     this._createAnimations();
+    this.subscribeClickEvents();
     this.stateMachine = new StateMachine(this, 'player-controller');
 
     this.stateMachine.addState('idle', {
@@ -46,6 +51,14 @@ export class PlayerController {
       .addState('walk', {
         onEnter: this._walkOnEnter,
         onUpdate: this._walkOnUpdate,
+      })
+      .addState('walk-touch-left', {
+        onEnter: this._walkOnEnter,
+        onUpdate: this._walkTouchLeftOnUpdate,
+      })
+      .addState('walk-touch-right', {
+        onEnter: this._walkOnEnter,
+        onUpdate: this._walkTouchRightOnUpdate,
       })
       .addState('jump', {
         onEnter: this._jumpOnEnter,
@@ -152,9 +165,30 @@ export class PlayerController {
 
   }
 
+  subscribeClickEvents() {
+    controlsService.events.on('left-control-clicked', () => {
+      console.log('left-control-clicked')
+      this.stateMachine?.setState('walk-touch-left');
+    });
+
+    controlsService.events.on('right-control-clicked', () => {
+      console.log('right-control-clicked')
+      this.stateMachine?.setState('walk-touch-right');
+    });
+
+    controlsService.events.on('jump-control-clicked', () => {
+      console.log('jump-control-clicked')
+      this.stateMachine?.setState('jump');
+    });
+
+    controlsService.events.on('stop-control-clicked', () => {
+      console.log('stop-control-clicked')
+      this.stateMachine?.setState('idle');
+    });
+  }
+
   update(dt: number) {
     this.stateMachine?.update(dt);
-
   }
 
   private _spikeHitOnEnter() {
@@ -249,13 +283,10 @@ export class PlayerController {
   }
 
   private _walkOnUpdate() {
-    const speed = 4;
     if (this.cursors.left?.isDown) {
-      this.sprite.flipX = true;
-      this.sprite.setVelocityX(-speed);
+      this._walkLeft();
     } else if (this.cursors.right?.isDown) {
-      this.sprite.flipX = false;
-      this.sprite.setVelocityX(speed);
+      this._walkRight();
     } else {
       this.sprite.setVelocityX(0);
       this.stateMachine?.setState('idle');
@@ -268,17 +299,40 @@ export class PlayerController {
     }
   }
 
+  private _walkTouchLeftOnUpdate() {
+    this._walkLeft();
+  }
+
+  private _walkTouchRightOnUpdate() {
+    this._walkRight();
+  }
+
+  private _walkLeft() {
+    this.sprite.flipX = true;
+    this.sprite.setVelocityX(-this.walkSpeed);
+  }
+
+  private _walkRight() {
+    this.sprite.flipX = false;
+    this.sprite.setVelocityX(this.walkSpeed);
+  }
+
   private _jumpOnEnter() {
     this.sprite.setVelocityY(-15);
     this.sprite.play('penguin-jump');
   }
 
   private _jumpOnUpdate() {
-    const speed = 4;
-    if (this.cursors.left?.isDown) {
-      this.sprite.setVelocityX(-speed);
-    } else if (this.cursors.right?.isDown) {
-      this.sprite.setVelocityX(speed);
+    console.log({
+      left: this.cursors.left?.isDown,
+      right: this.cursors.right?.isDown,
+      leftKeyPressed: controlsService.leftKeyPressed,
+      rightKeyPressed: controlsService.rightKeyPressed,
+    })
+    if (this.cursors.left?.isDown || controlsService.leftKeyPressed) {
+      this.sprite.setVelocityX(-this.jumpSpeed);
+    } else if (this.cursors.right?.isDown || controlsService.rightKeyPressed) {
+      this.sprite.setVelocityX(this.jumpSpeed);
     } else {
       this.sprite.setVelocityX(0);
     }

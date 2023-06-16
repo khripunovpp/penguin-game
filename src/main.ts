@@ -3,6 +3,7 @@ import Game from "./scenes/game";
 import UI from "./scenes/ui";
 import GameOver from "./scenes/game-over";
 import Welcome from "./scenes/welcome";
+import {controlsService} from "./services/controls-service";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -22,10 +23,11 @@ const config: Phaser.Types.Core.GameConfig = {
     GameOver,
   ],
   backgroundColor: '#99ead2',
+
 };
 
 const game = new Phaser.Game(config);
 
-
+controlsService.init();
 
 export default game;
