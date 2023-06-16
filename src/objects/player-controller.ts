@@ -2,6 +2,9 @@ import StateMachine from "../state-machine/state-machine";
 import {sharedInstance as events} from "./../services/event-center";
 import ObstaclesController from "./obstacles-controller";
 import {controlsService} from "../services/controls-service";
+import {usePenguinAnimation} from "./animations/penguin-animation";
+import {TweensHelper} from "../helpers/tweens-helper";
+import {CollideService} from "../services/collide-service";
 
 export class PlayerController {
 
@@ -9,11 +12,11 @@ export class PlayerController {
   private sprite: Phaser.Physics.Matter.Sprite;
   private stateMachine: StateMachine | undefined;
   private obstacles: ObstaclesController;
-  private scene: Phaser.Scene;
-  private healthPoints: number = 100;
+  private readonly scene: Phaser.Scene;
   private lastSnowman: Phaser.Physics.Matter.Sprite | undefined;
   private inWater: boolean;
   private platforms: MatterJS.BodyType[];
+  private healthPoints: number = 100;
   private baseHitTintColor: string = '#ff0000';
   private spikeHitHealthPoints: number = 10;
   private spikeHitTintColor: string = this.baseHitTintColor;
@@ -21,14 +24,17 @@ export class PlayerController {
   private waterHitTintColor: string = '#0000ff';
   private snowmanHitHealthPoints: number = 10;
   private snowmanHitTintColor: string = this.baseHitTintColor;
-  private walkSpeed: number = 4;
+  private readonly walkSpeed: number = 4;
   private jumpSpeed: number = 4;
+  private hitVelocity: number = 12;
+  private jumpVelocity: number = 15;
+  private collideService: CollideService;
 
   constructor(
     sprite: Phaser.Physics.Matter.Sprite,
     cursors: Phaser.Types.Input.Keyboard.CursorKeys,
     obstacles: ObstaclesController,
-    platfroms: MatterJS.BodyType[],
+    platforms: MatterJS.BodyType[],
     scene: Phaser.Scene,
   ) {
     this.sprite = sprite;
@@ -37,10 +43,11 @@ export class PlayerController {
     this.scene = scene;
     this.healthPoints = 100;
     this.inWater = false;
-    this.platforms = platfroms;
+    this.platforms = platforms;
     this.walkSpeed = controlsService.isTouchDevice ? 8 : 4;
+    this.collideService = new CollideService(this.sprite, this.obstacles);
 
-    this._createAnimations();
+    usePenguinAnimation(this.sprite);
     this.subscribeClickEvents();
     this.stateMachine = new StateMachine(this, 'player-controller');
 
@@ -94,45 +101,56 @@ export class PlayerController {
       }
     });
 
+
+    this.collideService.onHit('spikes', () => {
+      console.log('!!!!!!!!!!spikes hit!!!!!!!!!!')
+      this.stateMachine?.setState('spike-hit');
+      events.emit('spike-hit');
+    });
+
+    this.collideService.onHit('water', () => {
+      this.inWater = true;
+      this.stateMachine?.setState('water-hit');
+      events.emit('water-hit');
+    });
+
+    this.collideService.onHit('snowman', (data: MatterJS.ICollisionPair) => {
+      const body = data.bodyB as MatterJS.BodyType;
+      this.lastSnowman = body.gameObject;
+      if (this.sprite.y < body.position.y) {
+        this.stateMachine?.setState('snowman-stomp');
+      } else {
+        this.stateMachine?.setState('snowman-hit');
+      }
+    });
+
+    this.collideService.onCollect('star', (data: MatterJS.ICollisionPair) => {
+      const body = data.bodyB as MatterJS.BodyType;
+      const gameObject = body.gameObject;
+      if (!gameObject) return;
+      const sprite = gameObject as Phaser.Physics.Matter.Sprite;
+      events.emit('star-collected');
+      sprite.destroy();
+    });
+
+    this.collideService.onCollect('health', (data: MatterJS.ICollisionPair) => {
+      const body = data.bodyB as MatterJS.BodyType;
+      const gameObject = body.gameObject;
+      if (!gameObject) return;
+      const sprite = gameObject as Phaser.Physics.Matter.Sprite;
+      const value = sprite.getData('healthPoints') ?? 10;
+      this.healthPoints = Phaser.Math.Clamp(this.healthPoints + value, 0, 100);
+      events.emit('health-collected', this.healthPoints);
+      sprite.destroy();
+    });
+
+
     this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
 
-      if (this.obstacles?.is('spikes', body)) {
-        this.stateMachine?.setState('spike-hit');
-        events.emit('spike-hit');
-        return;
-      }
-
-      if (this.obstacles?.is('water', body)) {
-        this.inWater = true;
-        console.log({
-          body,
-          sprite_y: this.sprite.y,
-          body_y: body.position.y,
-        });
-        this.stateMachine?.setState('water-hit');
-        events.emit('water-hit');
-        return;
-      }
-
       if (this.platforms?.includes(body)) {
         this.stateMachine?.setState('idle');
-        return;
-      }
-
-      if (this.obstacles?.is('snowman', body)) {
-        this.lastSnowman = gameObject;
-        console.log({
-          snowmanBody: body,
-          sprite_y: this.sprite.y,
-          body_y: body.position.y,
-        })
-        if (this.sprite.y < body.position.y) {
-          this.stateMachine?.setState('snowman-stomp');
-        } else {
-          this.stateMachine?.setState('snowman-hit');
-        }
         return;
       }
 
@@ -143,23 +161,6 @@ export class PlayerController {
           this.stateMachine?.setState('idle');
         }
         return
-      }
-
-      const sprite = gameObject as Phaser.Physics.Matter.Sprite;
-      const type = sprite.getData('type');
-
-      switch (type) {
-        case 'star':
-          events.emit('star-collected');
-          sprite.destroy();
-          break;
-
-        case 'health':
-          const value = this.sprite.getData('healthPoints') ?? 10;
-          this.healthPoints = Phaser.Math.Clamp(this.healthPoints + value, 0, 100);
-          events.emit('health-collected', this.healthPoints);
-          sprite.destroy();
-          break;
       }
     })
 
@@ -192,7 +193,7 @@ export class PlayerController {
   }
 
   private _spikeHitOnEnter() {
-    this.sprite.setVelocityY(-12);
+    this.sprite.setVelocityY(-this.hitVelocity);
     this._hitHandler(this.spikeHitTintColor, this.spikeHitHealthPoints);
   }
 
@@ -216,12 +217,12 @@ export class PlayerController {
   private _snowmanHitOnEnter() {
     if (this.lastSnowman) {
       if (this.sprite.x < this.lastSnowman.x) {
-        this.sprite.setVelocityX(-12);
+        this.sprite.setVelocityX(-this.hitVelocity);
       } else {
-        this.sprite.setVelocityX(12);
+        this.sprite.setVelocityX(this.hitVelocity);
       }
     } else {
-      this.sprite.setVelocityY(-12);
+      this.sprite.setVelocityY(-this.hitVelocity);
     }
 
     this._hitHandler(this.snowmanHitTintColor, this.snowmanHitHealthPoints);
@@ -236,42 +237,13 @@ export class PlayerController {
     this._setHealthPoints(this.healthPoints - helathPoints);
   }
 
-  private _setTint(
+  private _setTint = (
     color: string,
     repeat: number = 2,
-  ) {
-
-    const startColor = Phaser.Display.Color.ValueToColor(0xffffff);
-    const endColor = Phaser.Display.Color.ValueToColor(color);
-
-    return this.scene.tweens.addCounter({
-      from: 0,
-      to: 100,
-      duration: 100,
-      repeat: repeat,
-      yoyo: true,
-      onUpdate: (tween) => {
-        const value = tween.getValue();
-        const colorObject = Phaser.Display.Color.Interpolate.ColorWithColor(
-          startColor,
-          endColor,
-          100,
-          value,
-        );
-
-        const color = Phaser.Display.Color.GetColor(
-          colorObject.r,
-          colorObject.g,
-          colorObject.b,
-        );
-
-        this.sprite.setTint(color);
-      },
-    })
-  }
+  ) => TweensHelper.setTint(this.scene, this.sprite, color, repeat);
 
   private _snowmanStompOnEnter() {
-    this.sprite.setVelocityY(-12);
+    this.sprite.setVelocityY(-this.hitVelocity);
 
     events.emit('snowman-stomped', this.lastSnowman);
 
@@ -318,7 +290,7 @@ export class PlayerController {
   }
 
   private _jumpOnEnter() {
-    this.sprite.setVelocityY(-15);
+    this.sprite.setVelocityY(-this.jumpVelocity);
     this.sprite.play('penguin-jump');
   }
 
@@ -375,51 +347,5 @@ export class PlayerController {
     if (this.healthPoints <= 0) {
       this.stateMachine?.setState('dead');
     }
-  }
-
-  private _createAnimations() {
-    this.sprite?.anims.create({
-      key: 'penguin-idle',
-      frames: [{
-        key: 'penguin',
-        frame: 'penguin_walk01.png',
-      }],
-    });
-
-    this.sprite?.anims.create({
-      key: 'penguin-walk',
-      frames: this.sprite?.anims.generateFrameNames('penguin', {
-        start: 1,
-        end: 4,
-        prefix: 'penguin_walk0',
-        suffix: '.png',
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    this.sprite?.anims.create({
-      key: 'penguin-jump',
-      frames: this.sprite?.anims.generateFrameNames('penguin', {
-        start: 1,
-        end: 3,
-        prefix: 'penguin_jump0',
-        suffix: '.png',
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    this.sprite?.anims.create({
-      key: 'penguin-die',
-      frames: this.sprite?.anims.generateFrameNames('penguin', {
-        start: 1,
-        end: 3,
-        prefix: 'penguin_die0',
-        suffix: '.png',
-      }),
-      frameRate: 10,
-      repeat: 0,
-    });
   }
 }

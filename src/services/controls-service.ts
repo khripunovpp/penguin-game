@@ -15,11 +15,11 @@ class ControlsService {
   }
 
   init() {
+    if (!this.isTouchDevice) return;
     const leftButton = document.getElementById('left');
     const rightButton = document.getElementById('right');
     const jumpButton = document.getElementById('jump');
     const stopButton = document.getElementById('stop');
-
 
     leftButton?.addEventListener('pointerdown', () => {
       this.leftKeyPressed = true;
