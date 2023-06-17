@@ -4,6 +4,9 @@ import UI from "./scenes/ui";
 import GameOver from "./scenes/game-over";
 import Welcome from "./scenes/welcome";
 import {controlsService} from "./services/controls-service";
+import {Di} from "./services/di";
+import {COLLIDE_OBSTACLES_SERVICE} from "./services/di-tokens";
+import {collideObstaclesServiceFactory} from "./services/collide-service";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -27,6 +30,10 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(config);
+
+const di = new Di();
+
+di.register(COLLIDE_OBSTACLES_SERVICE, collideObstaclesServiceFactory);
 
 controlsService.init();
 

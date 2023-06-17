@@ -2,55 +2,63 @@ import ObstaclesController from "../objects/obstacles-controller";
 
 export class CollideService {
 
+  callbacksHitQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
+  callbacksCollectQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
+  callbacksCollideQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
+
   constructor(
-    private sprite: Phaser.Physics.Matter.Sprite,
+    sprite: Phaser.Physics.Matter.Sprite,
     private obstacles: ObstaclesController,
   ) {
-    this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
+    console.log('constructor:collide-service', {sprite, obstacles});
+    sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
+      console.log('setOnCollide:data', data);
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
-      const sprite = gameObject as Phaser.Physics.Matter.Sprite;
-      const type = sprite.getData('type');
-      if (type === 'ground') {
-        this.callbacksQueue.forEach((callback) => {
-          callback();
-        });
+      const gameObject1 = gameObject as Phaser.Physics.Matter.Sprite;
+      const type = gameObject1?.['getData']?.('type');
+
+      for (const [key, callback] of this.callbacksCollideQueue) {
+        callback(data);
+      }
+
+      for (const [key, callback] of this.callbacksHitQueue) {
+        if (this.obstacles?.is(key, body)) {
+          callback(data);
+        }
+      }
+
+      for (const [key, callback] of this.callbacksCollectQueue) {
+        if (type === key) {
+          callback(data);
+        }
       }
     });
   }
-
-  callbacksQueue: Array<() => void> = [];
 
   onHit(
     key: string,
     callback: (data: MatterJS.ICollisionPair) => void,
   ) {
-    this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
-      const body = data.bodyB as MatterJS.BodyType;
-      if (this.obstacles?.is(key, body)) {
-        callback(data);
-      }
-    })
+    this.callbacksHitQueue.set(key, callback);
   }
 
   onCollect(
     key: string,
     callback: (data: MatterJS.ICollisionPair) => void,
   ) {
-    this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
-      const body = data.bodyB as MatterJS.BodyType;
-      const gameObject = body.gameObject;
-      const sprite = gameObject as Phaser.Physics.Matter.Sprite;
-      const type = sprite.getData('type');
-      if (type === key) {
-        callback(data);
-      }
-    })
+    this.callbacksCollectQueue.set(key, callback);
+  }
+
+  onCollide(
+    callback: (data: MatterJS.ICollisionPair) => void,
+  ) {
+    this.callbacksCollideQueue.set(`${Math.random()}_${Date.now()}`, callback);
   }
 }
 
 
-export const collideObstaclesService = (
+export const collideObstaclesServiceFactory = (
   sprite: Phaser.Physics.Matter.Sprite,
   obstacles: ObstaclesController,
 ) => new CollideService(sprite, obstacles);

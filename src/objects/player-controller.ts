@@ -5,6 +5,8 @@ import {controlsService} from "../services/controls-service";
 import {usePenguinAnimation} from "./animations/penguin-animation";
 import {TweensHelper} from "../helpers/tweens-helper";
 import {CollideService} from "../services/collide-service";
+import {Di} from "../services/di";
+import {COLLIDE_OBSTACLES_SERVICE} from "../services/di-tokens";
 
 export class PlayerController {
 
@@ -45,10 +47,15 @@ export class PlayerController {
     this.inWater = false;
     this.platforms = platforms;
     this.walkSpeed = controlsService.isTouchDevice ? 8 : 4;
-    this.collideService = new CollideService(this.sprite, this.obstacles);
+    this.collideService = Di.container.get<CollideService>(COLLIDE_OBSTACLES_SERVICE)(this.sprite, this.obstacles);
 
-    usePenguinAnimation(this.sprite);
+    this.setUpStateMachine();
     this.subscribeClickEvents();
+    this.setCollideHandlers();
+    usePenguinAnimation(this.sprite);
+  }
+
+  setUpStateMachine() {
     this.stateMachine = new StateMachine(this, 'player-controller');
 
     this.stateMachine.addState('idle', {
@@ -76,7 +83,6 @@ export class PlayerController {
       })
       .addState('water-hit', {
         onEnter: this._waterHitOnEnter,
-        onExit: this._waterHitOnExit,
       })
       .addState('snowman-hit', {
         onEnter: this._snowmanHitOnEnter,
@@ -88,22 +94,16 @@ export class PlayerController {
         onEnter: this._deadOnEnter,
       })
       .setState('idle');
+  }
 
+  setCollideHandlers() {
     this.sprite.setOnCollideEnd((data: any) => {
-      console.log({
-        bodyEnd: data.bodyB,
-        sprite_y: this.sprite.y,
-        body_y: data.bodyB.position.y,
-      });
-
       if (this.obstacles?.is('water', data.bodyB)) {
         this.inWater = data.bodyB.position.y < this.sprite.y;
       }
     });
 
-
     this.collideService.onHit('spikes', () => {
-      console.log('!!!!!!!!!!spikes hit!!!!!!!!!!')
       this.stateMachine?.setState('spike-hit');
       events.emit('spike-hit');
     });
@@ -144,8 +144,7 @@ export class PlayerController {
       sprite.destroy();
     });
 
-
-    this.sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
+    this.collideService.onCollide((data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
 
@@ -163,27 +162,22 @@ export class PlayerController {
         return
       }
     })
-
   }
 
   subscribeClickEvents() {
     controlsService.events.on('left-control-clicked', () => {
-      console.log('left-control-clicked')
       this.stateMachine?.setState('walk-touch-left');
     });
 
     controlsService.events.on('right-control-clicked', () => {
-      console.log('right-control-clicked')
       this.stateMachine?.setState('walk-touch-right');
     });
 
     controlsService.events.on('jump-control-clicked', () => {
-      console.log('jump-control-clicked')
       this.stateMachine?.setState('jump');
     });
 
     controlsService.events.on('stop-control-clicked', () => {
-      console.log('stop-control-clicked')
       this.stateMachine?.setState('idle');
     });
   }
@@ -208,10 +202,6 @@ export class PlayerController {
       },
     });
     this._hitHandler(this.waterHitTintColor, this.waterHitHealthPoints);
-  }
-
-  private _waterHitOnExit() {
-    console.log('water hit exit');
   }
 
   private _snowmanHitOnEnter() {
@@ -295,12 +285,6 @@ export class PlayerController {
   }
 
   private _jumpOnUpdate() {
-    console.log({
-      left: this.cursors.left?.isDown,
-      right: this.cursors.right?.isDown,
-      leftKeyPressed: controlsService.leftKeyPressed,
-      rightKeyPressed: controlsService.rightKeyPressed,
-    })
     if (this.cursors.left?.isDown || controlsService.leftKeyPressed) {
       this.sprite.setVelocityX(-this.jumpSpeed);
     } else if (this.cursors.right?.isDown || controlsService.rightKeyPressed) {
