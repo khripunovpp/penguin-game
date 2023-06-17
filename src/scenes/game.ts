@@ -82,17 +82,15 @@ export default class Game extends Phaser.Scene {
     this.load.image('mountains-back', 'assets/img/winter-scene/background/hills.png');
     this.load.image('mountains-mid1', 'assets/img/winter-scene/background/hills-2.png');
     this.load.image('mountains-mid2', 'assets/img/winter-scene/background/hills-3.png');
-
   }
 
   create() {
-    createAligned(this, this.worldWidth, 'mountains-back', 0.25)
-    createAligned(this, this.worldWidth, 'mountains-mid2', 0.5)
-    createAligned(this, this.worldWidth, 'mountains-mid1', 0.75)
+    this.createBackground();
+    this.setBounds();
+    this.createWorld();
+  }
 
-    this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
-    this.matter.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
-
+  createWorld() {
     const map = this.make.tilemap({key: 'tilemap'});
     const tileset = map.addTilesetImage('iceworld', 'tiles');
 
@@ -101,138 +99,189 @@ export default class Game extends Phaser.Scene {
 
     map.createLayer('obstacles', tileset);
 
-    this.cameras.main.scrollY = 300;
-
     const objectLayer = map.getObjectLayer('objects');
 
     objectLayer.objects.forEach(objData => {
       const {x = 0, y = 0, name, width = 0, height = 0} = objData;
       switch (name) {
         case 'penguin-spawn':
-
-          this.penguin = this.matter.add.sprite(
-            x + (width * 0.5),
-            y,
-            'penguin',
-            'penguin-front.png')
-            .play('penguin-idle')
-            .setFixedRotation();
-
-          this.playerController = new PlayerController(
-            this.penguin,
-            this.cursors,
-            this.obstacles as any,
-            this.platforms,
-            this,
-          );
-
-          this.cameras.main.startFollow(this.penguin, true);
-
-          // this.penguin.setPosition(x + width * 0.5, y - height * 0.5);
+          this.createPenguin(x + (width * 0.5), y);
           break;
 
         case 'snowman-spawn':
-          this.snowman = this.matter.add.sprite(
-            x + (width * 0.5),
-            y,
-            'snowman',
-            'snowman-front.png')
-            .play('snowman-idle')
-            .setFixedRotation();
-
-          this.snowmanControllers.push(new SnowmanController(
-            this.snowman,
-            this,
-          ));
-
-          this.obstacles?.add('snowman', this.snowman.body as MatterJS.BodyType);
-
+          this.createSnowman(x + (width * 0.5), y);
           break;
 
         case 'star':
-          const star = this.matter.add.sprite(
-            x + (width * 0.5),
-            y + (height * 0.5),
-            'star',
-            undefined,
-            {
-              isStatic: true,
-              isSensor: true,
-            }
-          );
-          star.setData('type', 'star');
+          this.createStar(x + (width * 0.5), y + (height * 0.5));
           break;
 
         case 'water':
-          const water = this.matter.add.rectangle(
-            x + (width * 0.5),
-            y + (height * 0.5),
-            width,
-            height,
-            {
-              isStatic: true,
-              isSensor: true,
-            },
-          );
-
-
-          this.obstacles?.add('water', water);
-
+          this.createWater(x + (width * 0.5), y + (height * 0.5), width, height);
           break;
 
         case 'platform':
-          const platform = this.matter.add.rectangle(
-            x + (width * 0.5),
-            y + (height * 0.5),
-            width,
-            height,
-            {
-              isStatic: true,
-            }
-          );
-
-          this.platforms?.push(platform);
-
-          if (this.penguin) {
-            this.penguin.setOnCollideWith(platform, () => {
-              console.log('collide penguin with platform')
-            });
-          }
-
+          this.createPlatform(x + (width * 0.5), y + (height * 0.5), width, height);
           break;
 
         case 'spikes':
-          const spike = this.matter.add.rectangle(
-            x + (width * 0.5),
-            y + (height * 0.5),
-            width,
-            height,
-            {
-              isStatic: true,
-              isSensor: true,
-            });
-
-          this.obstacles?.add('spikes', spike);
-
+          this.createSpikes(x + (width * 0.5), y + (height * 0.5), width, height);
           break;
 
         case 'health':
-          const health = this.matter.add.sprite(
-            x + (width * 0.5),
-            y + (height * 0.5),
-            'health',
-            undefined,
-            {
-              isStatic: true,
-              isSensor: true,
-            }
-          );
-          health.setData('type', 'health');
+          this.createHealth(x + (width * 0.5), y + (height * 0.5));
           break;
       }
     });
 
     this.matter.world.convertTilemapLayer(ground);
+  }
+
+  setBounds() {
+    this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
+    this.matter.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
+  }
+
+  createBackground() {
+    createAligned(this, this.worldWidth, 'mountains-back', 0.25)
+    createAligned(this, this.worldWidth, 'mountains-mid2', 0.5)
+    createAligned(this, this.worldWidth, 'mountains-mid1', 0.75)
+  }
+
+  createPenguin(
+    x: number,
+    y: number,
+  ) {
+    this.penguin = this.matter.add.sprite(
+      x,
+      y,
+      'penguin',
+      'penguin_walk01.png')
+      .play('penguin-idle')
+      .setFixedRotation();
+
+    this.playerController = new PlayerController(
+      this.penguin,
+      this.cursors,
+      this.obstacles as any,
+      this.platforms,
+      this,
+    );
+
+    this.cameras.main.startFollow(this.penguin, true);
+  }
+
+  createSnowman(
+    x: number,
+    y: number,
+  ) {
+    this.snowman = this.matter.add.sprite(
+      x,
+      y,
+      'snowman',
+      'snowman_left_1.png')
+      .play('snowman-idle')
+      .setFixedRotation();
+
+    this.snowmanControllers.push(new SnowmanController(
+      this.snowman,
+      this,
+    ));
+
+    this.obstacles?.add('snowman', this.snowman.body as MatterJS.BodyType);
+  }
+
+  createStar(
+    x: number,
+    y: number,
+  ) {
+    const star = this.matter.add.sprite(
+      x,
+      y,
+      'star',
+      undefined,
+      {
+        isStatic: true,
+        isSensor: true,
+      }
+    );
+    star.setData('type', 'star');
+  }
+
+  createWater(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const water = this.matter.add.rectangle(
+      x,
+      y,
+      width,
+      height,
+      {
+        isStatic: true,
+        isSensor: true,
+      },
+    );
+
+
+    this.obstacles?.add('water', water);
+  }
+
+  createPlatform(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const platform = this.matter.add.rectangle(
+      x,
+      y,
+      width,
+      height,
+      {
+        isStatic: true,
+      }
+    );
+
+    this.platforms?.push(platform);
+  }
+
+  createSpikes(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const spike = this.matter.add.rectangle(
+      x,
+      y,
+      width,
+      height,
+      {
+        isStatic: true,
+        isSensor: true,
+      });
+
+    this.obstacles?.add('spikes', spike);
+  }
+
+  createHealth(
+    x: number,
+    y: number,
+  ) {
+    const health = this.matter.add.sprite(
+      x,
+      y,
+      'health',
+      undefined,
+      {
+        isStatic: true,
+        isSensor: true,
+      }
+    );
+    health.setData('type', 'health');
   }
 
   update(_t: number, dt: number) {

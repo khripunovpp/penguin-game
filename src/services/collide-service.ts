@@ -1,24 +1,28 @@
 import ObstaclesController from "../objects/obstacles-controller";
 
-export class CollideService {
+export interface ICollideService {
+  onHit: (key: string, callback: (data: MatterJS.ICollisionPair) => void) => void;
+  onCollect: (key: string, callback: (data: MatterJS.ICollisionPair) => void) => void;
+  onCollide: (callback: (data: MatterJS.ICollisionPair) => void) => void;
+}
 
-  callbacksHitQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
-  callbacksCollectQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
-  callbacksCollideQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
+export class CollideService implements ICollideService {
+
+  private callbacksHitQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
+  private callbacksCollectQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
+  private callbacksCollideQueue: Map<string, (data: MatterJS.ICollisionPair) => void> = new Map();
 
   constructor(
     sprite: Phaser.Physics.Matter.Sprite,
     private obstacles: ObstaclesController,
   ) {
-    console.log('constructor:collide-service', {sprite, obstacles});
     sprite.setOnCollide((data: MatterJS.ICollisionPair) => {
-      console.log('setOnCollide:data', data);
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
       const gameObject1 = gameObject as Phaser.Physics.Matter.Sprite;
       const type = gameObject1?.['getData']?.('type');
 
-      for (const [key, callback] of this.callbacksCollideQueue) {
+      for (const [_, callback] of this.callbacksCollideQueue) {
         callback(data);
       }
 

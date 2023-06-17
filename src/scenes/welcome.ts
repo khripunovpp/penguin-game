@@ -19,5 +19,9 @@ export default class Welcome extends Phaser.Scene {
     this.add.text(button.x, button.y, 'Play', {
       fontSize: '48px',
     }).setOrigin(0.5);
+
+    this.input.keyboard.on('keydown-SPACE', () => {
+      this.scene.start('game');
+    });
   }
 }
