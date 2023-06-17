@@ -5,16 +5,10 @@
     <base href="./"/>
     <meta charset="UTF-8"/>
     <meta name="viewport"
-          content="width=500, min-width=500, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0"/>
+          content="width=500, min-width=500, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"/>
     <title>My Phaser 3 Game</title>
     <style>
         body {
-            touch-action: none;
-            -moz-user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -o-user-select: none;
         }
 
         .container {
@@ -55,41 +49,28 @@
             -o-user-select: none;
             height: 100px;
         }
-
-        .controls button:selected {
-            background: #ccc;
-        }
     </style>
-  <script type="module" crossorigin src="./assets/index.d66580e3.js"></script>
+  <script type="module" crossorigin src="./assets/index.1ff79867.js"></script>
 </head>
 
 <body>
 <div class="container">
     <div id="app"></div>
     <div class="controls">
-        <button id="jump" unselectable="on"
-                onselectstart="return false;"
-                onmousedown="return false;" type="button">Jump
+        <button id="jump" type="button">Jump
         </button>
     </div>
     <div class="controls">
-        <button id="left" unselectable="on"
-                onselectstart="return false;"
-                onmousedown="return false;" type="button">Left
+        <button id="left" type="button">Left
         </button>
-        <button id="right" unselectable="on"
-                onselectstart="return false;"
-                onmousedown="return false;" type="button">Right
+        <button id="right" type="button">Right
         </button>
     </div>
     <div class="controls">
-        <button id="stop" unselectable="on"
-                onselectstart="return false;"
-                onmousedown="return false;" type="button">Stop
+        <button id="stop" type="button">Stop
         </button>
     </div>
 </div>
 
 </body>
-
 </html>
