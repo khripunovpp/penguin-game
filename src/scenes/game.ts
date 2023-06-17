@@ -131,6 +131,14 @@ export default class Game extends Phaser.Scene {
         case 'health':
           this.createHealth(x + (width * 0.5), y + (height * 0.5));
           break;
+
+        case 'level-entrance':
+          this.createLevelEntrance(x + (width * 0.5), y + (height * 0.5));
+          break;
+
+        case 'level-exit':
+          this.createLevelExit(x + (width * 0.5), y + (height * 0.5));
+          break;
       }
     });
 
@@ -282,6 +290,40 @@ export default class Game extends Phaser.Scene {
       }
     );
     health.setData('type', 'health');
+  }
+
+  createLevelEntrance(
+    x: number,
+    y: number,
+  ) {
+    const levelEntrance = this.matter.add.sprite(
+      x,
+      y,
+      'level-entrance',
+      undefined,
+      {
+        isStatic: true,
+        isSensor: true,
+      }
+    );
+    levelEntrance.setData('type', 'level-entrance');
+  }
+
+  createLevelExit(
+    x: number,
+    y: number,
+  ) {
+    const levelExit = this.matter.add.sprite(
+      x,
+      y,
+      'level-exit',
+      undefined,
+      {
+        isStatic: true,
+        isSensor: true,
+      }
+    );
+    levelExit.setData('type', 'level-exit');
   }
 
   update(_t: number, dt: number) {

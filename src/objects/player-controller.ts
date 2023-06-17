@@ -97,24 +97,22 @@ export class PlayerController {
   }
 
   setCollideHandlers() {
-    this.sprite.setOnCollideEnd((data: any) => {
-      if (this.obstacles?.is('water', data.bodyB)) {
-        this.inWater = data.bodyB.position.y < this.sprite.y;
-      }
-    });
+    this.collideService.onCollideObstacle('water', (data: MatterJS.ICollisionPair) => {
+      this.inWater = (data.bodyB as Phaser.Physics.Matter.Sprite).y < this.sprite.y;
+    }, 'end');
 
-    this.collideService.onHit('spikes', () => {
+    this.collideService.onCollideObstacle('spikes', () => {
       this.stateMachine?.setState('spike-hit');
       events.emit('spike-hit');
     });
 
-    this.collideService.onHit('water', () => {
+    this.collideService.onCollideObstacle('water', () => {
       this.inWater = true;
       this.stateMachine?.setState('water-hit');
       events.emit('water-hit');
     });
 
-    this.collideService.onHit('snowman', (data: MatterJS.ICollisionPair) => {
+    this.collideService.onCollideObstacle('snowman', (data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
       this.lastSnowman = body.gameObject;
       if (this.sprite.y < body.position.y) {
@@ -124,7 +122,7 @@ export class PlayerController {
       }
     });
 
-    this.collideService.onCollect('star', (data: MatterJS.ICollisionPair) => {
+    this.collideService.onCollideObjectType('star', (data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
       if (!gameObject) return;
@@ -133,7 +131,7 @@ export class PlayerController {
       sprite.destroy();
     });
 
-    this.collideService.onCollect('health', (data: MatterJS.ICollisionPair) => {
+    this.collideService.onCollideObjectType('health', (data: MatterJS.ICollisionPair) => {
       const body = data.bodyB as MatterJS.BodyType;
       const gameObject = body.gameObject;
       if (!gameObject) return;
@@ -142,6 +140,14 @@ export class PlayerController {
       this.healthPoints = Phaser.Math.Clamp(this.healthPoints + value, 0, 100);
       events.emit('health-collected', this.healthPoints);
       sprite.destroy();
+    });
+
+    this.collideService.onCollideObjectType('level-entrance', () => {
+      this.scene.scene.start('level2');
+    });
+
+    this.collideService.onCollideObjectType('level-exit', () => {
+      this.scene.scene.start('welcome');
     });
 
     this.collideService.onCollide((data: MatterJS.ICollisionPair) => {
